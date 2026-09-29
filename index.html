@@ -75,7 +75,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
 <div class="wrap">
   <header>
     <h1>Planos hídricos · Kennedy</h1>
-    <p class="lede">Veinte planos temáticos de calidad y cantidad de agua para los humedales La Vaca, El Burro y Techo, dentro del perímetro de estudio de la localidad de Kennedy (Bogotá). Cada plano tiene su propia rampa de color y se descarga como imagen PNG lista para informe.</p>
+    <p class="lede">Planos temáticos de calidad y cantidad de agua, dinámica hídrica y gases de efecto invernadero / calidad del aire (CH₄, NO₂, CO) para los humedales La Vaca, El Burro y Techo, dentro del perímetro de estudio de la localidad de Kennedy (Bogotá). Cada plano tiene su propia rampa de color y se descarga como imagen PNG lista para informe.</p>
     <p class="lede"><a href="ndvi.html">Herramienta NDVI Sentinel-2 con filtro Savitzky-Golay →</a></p>
   </header>
 
@@ -86,8 +86,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
         <span class="status" id="status"></span>
       </div>
       <div class="ctl">
-        <button type="button" id="zipall" disabled>Descargar los 20 (ZIP)</button>
-        <button type="button" class="ghost" id="zipbare" disabled>20 planos solos (ZIP)</button>
+        <button type="button" id="zipall" disabled>Descargar todos (ZIP)</button>
+        <button type="button" class="ghost" id="zipbare" disabled>Planos solos (ZIP)</button>
         <label class="btn ghost" for="csvfile">Cargar CSV propio</label>
         <input type="file" id="csvfile" accept=".csv,text/csv" hidden>
         <label class="btn ghost" for="kmlfile">Cambiar perímetro (KML)</label>
@@ -127,7 +127,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{ou
         <div class="field"><label for="sres">Píxel</label><select id="sres"><option value="10" selected>10 m</option><option value="20">20 m</option></select></div>
         <div class="field"><label for="sn">Escenas</label><select id="sn"><option>6</option><option selected>10</option><option>16</option></select></div>
         <button type="button" id="satrun">Recalcular</button>
-        <div class="field"><span class="lbl">Fuente en los 20 planos</span><div class="btns" style="display:flex;gap:6px"><button type="button" class="ghost" id="allcampo">Campo</button><button type="button" class="ghost" id="allsat">Sentinel-2</button></div></div>
+        <div class="field"><span class="lbl">Fuente en todos los planos</span><div class="btns" style="display:flex;gap:6px"><button type="button" class="ghost" id="allcampo">Campo</button><button type="button" class="ghost" id="allsat">Sentinel-2</button></div></div>
       </div>
     </div>
   </section>
@@ -211,10 +211,19 @@ const V = [
   {n:20, t:'Carga contaminante', v:'concentración × caudal', u:'kg/día', dec:1, alt:{label:'Concentración', opts:[['dbo5','DBO5'],['dqo','DQO'],['sst','SST'],['p_total','P total'],['ntk','NTK'],['grasas_aceites','Grasas y aceites']]},
    calcAlt:(r,c)=>(isNum(r[c])&&isNum(r.caudal))?r[c]*r.caudal*0.0864:NaN,
    d:'Cuánto contaminante entra al sistema: concentración (mg/L) × caudal (L/s) × 0,0864. Solo se calcula donde una misma fila trae concentración y caudal; en las fuentes actuales no coinciden, así que queda sin dato.',
-   ramp:['#30123b','#4686fb','#1ae4b6','#a2fc3c','#faba39','#e4460a','#7a0403']}
+    ramp:['#30123b','#4686fb','#1ae4b6','#a2fc3c','#faba39','#e4460a','#7a0403']},
+  {n:21, t:'Metano (CH₄)', v:'concentración de CH₄', u:'ppm', col:'ch4', dec:2,
+   d:'Gas de efecto invernadero y subproducto de digestión anaerobia de materia orgánica en lodos y sedimentos del humedal.',
+   ramp:['#ffffe5','#d9f0a3','#78c679','#238443','#004529']},
+  {n:22, t:'Dióxido de nitrógeno (NO₂)', v:'concentración de NO₂', u:'µg/m³', col:'no2', dec:1,
+   d:'Gas contaminante criterio asociado a combustión vehicular en vías arterias y emisiones del perímetro urbano.',
+   ramp:['#fff5f0','#fcbba1','#fb6a4a','#cb181d','#67000d']},
+  {n:23, t:'Monóxido de carbono (CO)', v:'concentración de CO', u:'mg/m³', col:'co', dec:2,
+   d:'Subproducto de la combustión incompleta de hidrocarburos y fuentes móviles en el área de estudio.',
+   ramp:['#f3e5f5','#ce93d8','#ab47bc','#7b1fa2','#4a148c']}
 ];
 const GROUPS = { 'La Vaca Norte':'La Vaca', 'La Vaca Sur':'La Vaca', 'El Burro':'El Burro', 'Techo':'Techo' };
-const NUMCOLS = ['lat','lon','ph','od','p_total','ntk','nh4','dqo','dbo5','turbiedad','sst','conductividad','grasas_aceites','coliformes_fecales','coliformes_totales','profundidad','area_inundada','nivel_freatico','conexiones','caudal'];
+const NUMCOLS = ['lat','lon','ph','od','p_total','ntk','nh4','dqo','dbo5','turbiedad','sst','conductividad','grasas_aceites','coliformes_fecales','coliformes_totales','profundidad','area_inundada','nivel_freatico','conexiones','caudal','ch4','no2','co'];
 
 function isNum(x){ return typeof x === 'number' && isFinite(x); }
 function sum(a){ return a.every(isNum) ? a.reduce((s,x)=>s+x,0) : NaN; }
@@ -224,7 +233,7 @@ const $ = id => document.getElementById(id);
 const S = {
   rows: [], dataName: 'data/muestreo_real.csv', fuentes: window.FUENTES || [],
   perim: window.PERIMETRO, hum: window.HUMEDALES,
-  base: 'carto', method: 'idw', pw: 2, conv: { base: true, texture: true, iso: true, points: true, labels: true, wetlands: true, names: true, perimeter: true, grid: true, north: true, scale: true }, alt: {5:'ntk', 20:'dbo5'}, src: Object.fromEntries(Array.from({ length: 20 }, (_, i) => [i + 1, (i + 1 === 16 || i + 1 === 20) ? 'sat' : 'campo']))
+  base: 'carto', method: 'idw', pw: 2, conv: { base: true, texture: true, iso: true, points: true, labels: true, wetlands: true, names: true, perimeter: true, grid: true, north: true, scale: true }, alt: {5:'ntk', 20:'dbo5'}, src: Object.fromEntries(Array.from({ length: 23 }, (_, i) => [i + 1, (i + 1 === 16 || i + 1 === 20) ? 'sat' : 'campo']))
 };
 
 // ---------------- CSV ----------------
@@ -633,7 +642,10 @@ const SATDEF = {
   17: { idx: 'msi',   f: b => b.S1 / b.N,              sub: 'MSI · estrés hídrico B11/B8 (contexto para nivel freático)' },
   18: { idx: 'ndbi',  f: b => nd(b.S1, b.N),           sub: 'NDBI · superficie construida (presión urbana, fuentes de vertimiento)' },
   19: { idx: 'awei',  f: b => 4 * (b.G - b.S1) - (0.25 * b.N + 2.75 * b.S2), sub: 'AWEI · extracción de agua superficial (contexto para caudal)' },
-  20: { idx: 'bsi',   f: b => ((b.S1 + b.R) - (b.N + b.B)) / ((b.S1 + b.R) + (b.N + b.B)), sub: 'BSI · suelo desnudo (fuente de carga por escorrentía)' }
+  20: { idx: 'bsi',   f: b => ((b.S1 + b.R) - (b.N + b.B)) / ((b.S1 + b.R) + (b.N + b.B)), sub: 'BSI · suelo desnudo (fuente de carga por escorrentía)' },
+  21: { idx: 'ch4',   f: b => nd(b.S2, b.S1),          sub: 'Relación SWIR2/SWIR1 (B12−B11)/(B12+B11) (proxy espectral de metano)' },
+  22: { idx: 'no2',   f: b => nd(b.R, b.B),            sub: 'Relación rojo/azul (B4−B2)/(B4+B2) (proxy de aerosoles y emisiones urbanas)' },
+  23: { idx: 'co',    f: b => b.S2 / b.R,              sub: 'Relación SWIR2/Rojo B12/B4 (proxy de combustión y fuentes fijas)' }
 };
 Object.values(SATDEF).forEach(d => { d.unit = d.area ? 'índice MNDWI' : 'índice ' + d.idx.toUpperCase(); });
 const SAT = { ready: false, cache: {} };
@@ -892,7 +904,7 @@ function sheet(ctx, def, D){
   ctx.textAlign = 'left';
   let y = 56;
   ctx.fillStyle = '#6b7670'; ctx.font = '500 13px "IBM Plex Mono", monospace';
-  ctx.fillText(`PLANO ${String(def.n).padStart(2, '0')} / 20`, px, y); y += 34;
+  ctx.fillText(`PLANO ${String(def.n).padStart(2, '0')} / ${V.length}`, px, y); y += 34;
   ctx.fillStyle = '#17201B'; ctx.font = '700 34px "IBM Plex Sans Condensed", sans-serif';
   y = wrap(ctx, def.t, px, y, iw, 38);
   ctx.fillStyle = '#4a5550'; ctx.font = '400 16px "IBM Plex Sans", sans-serif';
@@ -1032,22 +1044,22 @@ $('zipall').addEventListener('click', async () => {
   const btn = $('zipall'); btn.disabled = true;
   try {
     const zip = new JSZip();
-    for (const def of V){ btn.textContent = `Generando ${def.n}/20…`; zip.file(fileName(def), await toBlob(def)); }
+    for (const def of V){ btn.textContent = `Generando ${def.n}/${V.length}…`; zip.file(fileName(def), await toBlob(def)); }
     btn.textContent = 'Comprimiendo…';
     save(await zip.generateAsync({ type: 'blob' }), 'planos_humedales_kennedy.zip');
   } catch (e){ $('status').textContent = e.message; }
-  btn.textContent = 'Descargar los 20 (ZIP)'; btn.disabled = false;
+  btn.textContent = `Descargar todos (${V.length}) (ZIP)`; btn.disabled = false;
 });
 
 $('zipbare').addEventListener('click', async () => {
   const btn = $('zipbare'); btn.disabled = true;
   try {
     const zip = new JSZip();
-    for (const def of V){ btn.textContent = `Generando ${def.n}/20…`; zip.file(fileName(def).replace('.png', '_solo.png'), await toBlobBare(def)); }
+    for (const def of V){ btn.textContent = `Generando ${def.n}/${V.length}…`; zip.file(fileName(def).replace('.png', '_solo.png'), await toBlobBare(def)); }
     btn.textContent = 'Comprimiendo…';
     save(await zip.generateAsync({ type: 'blob' }), 'planos_solos_humedales_kennedy.zip');
   } catch (e){ $('status').textContent = e.message; }
-  btn.textContent = '20 planos solos (ZIP)'; btn.disabled = false;
+  btn.textContent = `${V.length} planos solos (ZIP)`; btn.disabled = false;
 });
 $('base').addEventListener('change', e => { S.base = e.target.value; drawAll(); });
 $('pw').addEventListener('change', e => { S.pw = +e.target.value; drawAll(); });

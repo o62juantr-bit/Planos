@@ -1,6 +1,6 @@
 # Planos hídricos · Kennedy
 
-20 planos temáticos de calidad y cantidad de agua para los humedales **La Vaca**, **El Burro** y **Techo** (localidad de Kennedy, Bogotá), dentro del perímetro `data/perimetro_kennedy_polygon2.kml`. Cada plano tiene su propia rampa de color y se descarga como PNG en 8K: completo con hoja y convenciones (7680 × 5120 px) o «solo plano», sin nada más y con fondo transparente fuera del perímetro (7680 × 7680 px); también en ZIP con los 20 o todos juntos en un ZIP.
+23 planos temáticos de calidad y dinámica hídrica, así como gases de efecto invernadero y calidad del aire (**Metano CH₄**, **NO₂**, **CO**) para los humedales **La Vaca**, **El Burro** y **Techo** (localidad de Kennedy, Bogotá), dentro del perímetro `data/perimetro_kennedy_polygon2.kml`. Cada plano tiene su propia rampa de color y se descarga como PNG en 8K: completo con hoja y convenciones (7680 × 5120 px) o «solo plano», sin nada más y con fondo transparente fuera del perímetro (7680 × 7680 px); también en ZIP con todos los planos juntos.
 
 Abre `index.html` en el navegador (o publícalo con GitHub Pages: *Settings → Pages → Deploy from branch → main*).
 
@@ -8,12 +8,12 @@ Abre `index.html` en el navegador (o publícalo con GitHub Pages: *Settings → 
 
 | Archivo | Contenido |
 |---|---|
-| `data/muestreo_real.csv` | Valores por punto de muestreo con su fuente (`fuente`, `referencia`). Celda vacía = la fuente no reporta esa variable. |
+| `data/muestreo_real.csv` | Valores por punto de muestreo con su fuente (`fuente`, `referencia`), incluyendo calidad hídrica y concentraciones de CH₄, NO₂ y CO. |
 | `data/humedales.geojson` | Límites de los humedales, OpenStreetMap (© colaboradores de OpenStreetMap, ODbL). |
 | `data/perimetro_kennedy_polygon2.kml` | Perímetro de estudio. |
 | `data.js` | Los tres anteriores empaquetados para que la página funcione sin servidor. |
 
-**Copernicus Sentinel-2:** la página calcula en vivo la mediana por banda (B2, B3, B4, B5, B8, B11, B12) de escenas Sentinel-2 L2A (Earth Search / AWS, máscara de nubes SCL, 10 m) y los 20 planos pueden mostrar un índice espectral propio (selector «Fuente», o «Fuente en los 20 planos»). El MNDWI del plano 16 mide agua; los demás (NDCI, NDTI, Stumpf, SI, NDBI, AWEI, BSI, NDVI, SAVI, NDMI, MSI, GNDVI y relaciones de bandas) son indicadores relativos sin calibrar, no mediciones de la variable. Contiene datos Copernicus Sentinel modificados.
+**Copernicus Sentinel-2:** la página calcula en vivo la mediana por banda (B2, B3, B4, B5, B8, B11, B12) de escenas Sentinel-2 L2A (Earth Search / AWS, máscara de nubes SCL, 10 m) y los 23 planos pueden mostrar un índice o proxy espectral propio (selector «Fuente»). El MNDWI del plano 16 mide agua; los demás (incluyendo proxies SWIR para CH₄ y CO, y proxies espectrales de absorción para NO₂) son indicadores relativos sin calibrar. Contiene datos Copernicus Sentinel modificados.
 
 El periodo de muestreo (desde/hasta) filtra los datos de campo por fecha, como el parámetro datetime del notebook; el periodo de Sentinel-2 se elige aparte. No se necesita backend ni claves de API: todo usa servicios públicos (Earth Search, AWS S3, Esri/OSM).
 
@@ -21,7 +21,7 @@ También puedes cargar tu propio CSV (mismas columnas) o cambiar el perímetro (
 
 ## Planos
 
-1 pH · 2 Eutrofización (DBO5+DQO+N+P) · 3 Oxígeno disuelto · 4 Fósforo total · 5 NTK / NH₄ · 6 DQO · 7 DBO5 · 8 Relación DBO/DQO · 9 Turbiedad · 10 SST · 11 Conductividad · 12 Grasas y aceites · 13 Coliformes fecales · 14 Coliformes totales · 15 Profundidad de lámina · 16 Área inundada · 17 Nivel freático · 18 Conexiones erradas · 19 Caudal de entrada · 20 Carga contaminante (concentración × caudal)
+1 pH · 2 Eutrofización (DBO5+DQO+N+P) · 3 Oxígeno disuelto · 4 Fósforo total · 5 NTK / NH₄ · 6 DQO · 7 DBO5 · 8 Relación DBO/DQO · 9 Turbiedad · 10 SST · 11 Conductividad · 12 Grasas y aceites · 13 Coliformes fecales · 14 Coliformes totales · 15 Profundidad de lámina · 16 Área inundada · 17 Nivel freático · 18 Conexiones erradas · 19 Caudal de entrada · 20 Carga contaminante · 21 Metano (CH₄) · 22 Dióxido de nitrógeno (NO₂) · 23 Monóxido de carbono (CO)
 
 Métodos: superficies IDW (o Thiessen) sobre todo el perímetro, en clases por cuantiles con isolíneas, sin difuminado; índices Sentinel-2 píxel a píxel a 10 m. Marco con coordenadas geográficas (grados, minutos y segundos), norte y escala gráfica. Textura: brillo real de Sentinel-2 a 10 m como sombreado (no altera valores). Todas las convenciones se pueden prender o apagar.
 
